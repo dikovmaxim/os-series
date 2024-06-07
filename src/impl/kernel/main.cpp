@@ -1,20 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "drivers/vga.hpp"
 #include "multiboot.h"
-
-#define VIDEO_MEMORY (char*) 0xb8000
-static int line = 0;
-
-// Function to print to the screen
-void printf(const char* str) {
-    char* video_memory = VIDEO_MEMORY;
-    for (int i = 0; str[i] != '\0'; i++) {
-        video_memory[line * 80 * 2 + i * 2] = str[i];
-        video_memory[line * 80 * 2 + i * 2 + 1] = 0x0f;
-    }
-    line++;
-}
 
 // Function to get CR0
 uint64_t get_cr0() {
@@ -50,23 +38,19 @@ bool is_gdt_enabled() {
     return (cr0 & (1 << 0)) && (cr4 & (1 << 5));  // Protected mode and PAE (Page Address Extension) enabled
 }
 
-// Kernel main function
-extern "C" void kernel_main(multiboot_info_t* mbd) {
 
-
-    printf("Hello from 64-bit mode!");
-
-    if (is_64bit_mode_enabled()) {
-        printf("System is running in 64-bit mode");
-    } else {
-        printf("System is running in 32-bit mode");
+extern "C" void kernel_main(uint32_t multiboot_magic, multiboot_info_t* mbi) {
+    // Check if the magic number is valid for Multiboot 1
+    if (multiboot_magic != 0x2BADB002) {
+        printf("Invalid multiboot magic number\n");
+        while (1) { asm("hlt"); }
+    }else{
+        printf("Multiboot magic number is valid\n");
     }
 
-    if (is_gdt_enabled()) {
-        printf("GDT is enabled");
-    } else {
-        printf("GDT is disabled");
-    }
+    // You can add more processing code here to handle the `mbi` if needed
 
-    while (1);
+    while (1) {
+        asm("hlt");
+    }
 }

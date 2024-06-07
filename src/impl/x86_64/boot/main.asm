@@ -1,8 +1,10 @@
-section .text
+; Start of bootloader code
 bits 32
-
 global start
 extern long_mode_start
+
+section .text
+align 4
 
 start:
     ; Set up stack
@@ -24,7 +26,7 @@ start:
     hlt
 
 check_multiboot:
-    cmp eax, 0x36d76289
+    cmp eax, 0x2BADB002  ; Multiboot 1 magic number
     jne .no_multiboot
     ret
 .no_multiboot:
@@ -142,3 +144,15 @@ gdt64_pointer:
     dq gdt64                 ; Base address of GDT
 
 gdt64_end:
+
+section .multiboot_header
+align 4
+
+header_start:
+    dd 0x1BADB002     ; Multiboot header magic number
+    dd 0x00000000     ; Multiboot flags
+    dd -(0x1BADB002)  ; Checksum
+
+    ; Alignment tags (optional, helps alignment)
+    align 8
+header_end:

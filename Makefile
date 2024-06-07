@@ -14,7 +14,11 @@ x86_64_object_files := $(x86_64_c_object_files) $(x86_64_asm_object_files)
 
 $(kernel_object_files): build/kernel/%.o : src/impl/kernel/%.cpp
 	mkdir -p $(dir $@) && \
-	g++ -c -I src/intf -ffreestanding -fpermissive $(patsubst build/kernel/%.o, src/impl/kernel/%.cpp, $@) -o $@ \
+	g++ -c -I src/intf -ffreestanding -fpermissive $(patsubst build/kernel/%.o, src/impl/kernel/%.cpp, $@) -o $@
+
+$(kernel_object_files): build/kernel/%.o : src/impl/kernel/**/*.cpp
+	mkdir -p $(dir $@) && \
+	g++ -c -I src/intf -ffreestanding -fpermissive $(patsubst build/kernel/%.o, src/impl/kernel/%.cpp, $@) -o $@
 
 $(kernel_asm_object_files): build/kernel/%.o : src/impl/kernel/%.asm
 	mkdir -p $(dir $@) && \
