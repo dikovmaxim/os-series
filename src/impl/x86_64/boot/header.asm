@@ -1,16 +1,21 @@
-section .multiboot_header
-header_start:
-    ; magic number
-    dd 0xe85250d6             ; Multiboot2 magic number
-    ; architecture
-    dd 0                      ; Protected mode i386
-    ; header length
-    dd header_end - header_start
-    ; checksum
-    dd -(0xe85250d6 + 0 + (header_end - header_start))
+;;;;;;;;;;;;;;;;;;;;;;;; MULTIBOOT
+MBOOT_PAGE_ALIGN EQU 1 << 0
+MBOOT_MEM_INFO EQU 1 << 1
+MBOOT_USE_GFX EQU 0
 
-    ; End tag
-    dw 0
-    dw 0
-    dd 8
-header_end:
+MBOOT_MAGIC EQU 0x1BADB002
+MBOOT_FLAGS EQU MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO | MBOOT_USE_GFX
+MBOOT_CHECKSUM EQU -(MBOOT_MAGIC + MBOOT_FLAGS)
+;;;;;;;;;;;;;;;;;;;;;;;; KERNEL STUFF
+
+section .multiboot_header
+ALIGN 4
+    DD MBOOT_MAGIC
+    DD MBOOT_FLAGS
+    DD MBOOT_CHECKSUM
+    DD 0, 0, 0, 0, 0
+
+    DD 0
+    DD 800
+    DD 600
+    DD 32

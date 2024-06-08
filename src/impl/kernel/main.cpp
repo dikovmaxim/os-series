@@ -3,6 +3,7 @@
 
 #include "drivers/vga.hpp"
 #include "multiboot.h"
+#include "interrupts/idt.hpp"
 
 // Function to get CR0
 uint64_t get_cr0() {
@@ -39,16 +40,69 @@ bool is_gdt_enabled() {
 }
 
 
-extern "C" void kernel_main(uint32_t multiboot_magic, multiboot_info_t* mbi) {
+#define PAGE_SIZE 4096  // Assuming 4KB pages
+
+
+extern "C" void kernel_main(uint32_t multiboot_magic, multiboot_info* mbi) {
     // Check if the magic number is valid for Multiboot 1
     if (multiboot_magic != 0x2BADB002) {
         printf("Invalid multiboot magic number\n");
         while (1) { asm("hlt"); }
-    }else{
+    } else {
         printf("Multiboot magic number is valid\n");
     }
 
-    // You can add more processing code here to handle the `mbi` if needed
+    if (is_64bit_mode_enabled()) {
+        printf("64-bit mode is enabled\n");
+    } else {
+        printf("64-bit mode is not enabled\n");
+        while (1) { asm("hlt"); }
+    }
+
+    if (is_gdt_enabled()) {
+        printf("GDT is enabled\n");
+    } else {
+        printf("GDT is not enabled\n");
+        while (1) { asm("hlt"); }
+    }
+
+    // Check if the memory map is available
+    if (!(mbi->flags & 0x40)) {
+        printf("Memory map is not available\n");
+        while (1) { asm("hlt"); }
+    } else {
+        printf("Memory map is available\n");
+    }
+
+    //check if interrupts are enabled
+    uint64_t rflags;
+    __asm__ __volatile__("pushf; pop %0" : "=rm" (rflags));
+    if (rflags & (1 << 9)) {
+        printf("Interrupts are enabled\n");
+    } else {
+        printf("Interrupts are not enabled\n");
+    }
+
+
+    printf("CR0 = 0x%x\n", get_cr0());
+    printf("CS = 0x%x\n", get_cs());
+    printf("CR4 = 0x%x\n", get_cr4());
+
+
+
+    printf("Memory map length = %u, memory map address = 0x%x\n", mbi->mmap_length, mbi->mmap_addr);
+
+
+    init_idt();
+
+    //check if interrupts are enabled
+    __asm__ __volatile__("pushf; pop %0" : "=rm" (rflags));
+    if (rflags & (1 << 9)) {
+        printf("Interrupts are enabled\n");
+    } else {
+        printf("Interrupts are not enabled\n");
+    }
+    
 
     while (1) {
         asm("hlt");

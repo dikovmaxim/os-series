@@ -76,9 +76,6 @@ static void print_unsigned(unsigned int value) {
 
 static void print_hex(unsigned int value) {
     const char* hex_digits = "0123456789ABCDEF";
-    put_char('0');
-    put_char('x');
-
     for (int i = 28; i >= 0; i -= 4) {
         put_char(hex_digits[(value >> i) & 0xF]);
     }
